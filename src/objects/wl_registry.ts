@@ -28,6 +28,7 @@ export class wl_registry implements d {
       case Global_Ids.wl_touch:
       case Global_Ids.wl_data_device:
       case Global_Ids.zwp_xwayland_keyboard_grab_manager_v1:
+      case Global_Ids.zwp_linux_dmabuf_v1:
         s.add_global_bind(name, id_id, version);
         // const set = s.global_binds.get(name) ?? new Set();
         // set.add(id_id);

@@ -13,6 +13,7 @@ import { pointer } from "./objects/wl_pointer.ts";
 import { zwp_xwayland_keyboard_grab_manager_v1 } from "./objects/zwp_xwayland_keyboard_grab_manager_v1.ts";
 import { xwayland_shell_v1 } from "./objects/xwayland_shell_v1.ts";
 import { wl_touch } from "./objects/wl_touch.ts";
+import { zwp_linux_dmabuf_v1 } from "./objects/zwp_linux_dmabuf_v1.ts";
 export enum Global_Ids {
   wl_display = 1,
   wl_compositor = 0xff00_000,
@@ -29,6 +30,7 @@ export enum Global_Ids {
   wl_data_device,
   wl_touch,
   zxdg_decoration_manager_v1,
+  zwp_linux_dmabuf_v1,
 }
 const seat = wl_seat.make();
 const globals = {
@@ -48,6 +50,7 @@ const globals = {
   [Global_Ids.wl_data_device]: seat,
   [Global_Ids.wl_touch]: wl_touch.make(),
   [Global_Ids.zxdg_decoration_manager_v1]: zxdg_decoration_manager_v1.make(),
+  [Global_Ids.zwp_linux_dmabuf_v1]: zwp_linux_dmabuf_v1.make(),
 };
 
 export class GlobalObjects {
@@ -103,6 +106,19 @@ export const advertised_global_objects_names = [
     id: Global_Ids.xwayland_shell_v1,
     version: 1,
   },
+  /**
+   * @TODO should this be advertised?
+   */
+  {
+    name: "zwp_linux_dmabuf_v1",
+    id: Global_Ids.zwp_linux_dmabuf_v1,
+    /**
+     * @TODO Latest version is 5, but I don't want to implement 
+     * linux_dmabuf_feedback_v1 just yet. So use version 3
+     * which doesn't require it.
+     */
+    version: 3,
+  }
 ];
 
 export const global_objects = new GlobalObjects();

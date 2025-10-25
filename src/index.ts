@@ -28,6 +28,7 @@ if (args.values["debug-log"]) {
     const message = args.join(" ") + "\n";
     writeFileSync("debug.log", message, { flag: "a" });
   };
+  console.log("Writinig to debug.log!");
 }
 
 listener.main_loop();

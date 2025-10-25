@@ -12,8 +12,8 @@ tasks:
     cmds:
       - |
         cd {{.TASKFILE_DIR}}
-        ninja -C build
-        meson install -C build --no-rebuild
+        PKG_CONFIG_PATH={{.ROOT_DIR}}/{{.chafa_PKG_CONFIG_PATH}} ninja -C build
+        PKG_CONFIG_PATH={{.ROOT_DIR}}/{{.chafa_PKG_CONFIG_PATH}} meson install -C build --no-rebuild
     silent: true
     env:
       PKG_CONFIG_PATH: '{{.ROOT_DIR}}/{{.chafa_PKG_CONFIG_PATH}}'
@@ -60,7 +60,7 @@ tasks:
       - |
         cd {{.TASKFILE_DIR}}
         echo "Package config path is {{.PKG_CONFIG_PATH}}   {{.chafa_PKG_CONFIG_PATH}}"
-        meson setup build --prefix={{.ROOT_DIR}}/{{.libinterop_OUT_DIR}}
+        PKG_CONFIG_PATH={{.ROOT_DIR}}/{{.chafa_PKG_CONFIG_PATH}} meson setup build --prefix={{.ROOT_DIR}}/{{.libinterop_OUT_DIR}}
     env:
       PKG_CONFIG_PATH: '{{.ROOT_DIR}}/{{.chafa_PKG_CONFIG_PATH}}'
     status:
