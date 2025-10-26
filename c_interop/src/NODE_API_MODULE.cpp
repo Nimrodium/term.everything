@@ -12,6 +12,8 @@
 #include "draw_desktop.h"
 #include "close_wayland_socket.h"
 #include "get_socket_path_from_name.h"
+#include "get_dmabuf_format.h"
+#include "make_offscreen_renderer.h"
 //{NEW_INCLUDE} will be added here
 
 Object Init(Env env, Object exports)
@@ -29,6 +31,8 @@ Object Init(Env env, Object exports)
     exports["draw_desktop"] = Function::New(env, draw_desktop_js);
     exports["close_wayland_socket"] = Function::New(env, close_wayland_socket_js);
     exports["get_socket_path_from_name"] = Function::New(env, get_socket_path_from_name_js);
+    exports["get_dmabuf_format"] = Function::New(env, get_dmabuf_format_js);
+    exports["make_offscreen_renderer"] = Function::New(env, make_offscreen_renderer_js);
     //{NEW_FUNC} will be added here
 
     return exports;

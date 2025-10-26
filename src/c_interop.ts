@@ -9,6 +9,10 @@ export type Draw_State = object & {
   __brand: "Draw_State";
 };
 
+export type Offscreen_Renderer = object & {
+  __brand: "Offscreen_Renderer";
+};
+
 export interface C_Interop {
   set_raw_mode(): void;
   reset_mode(): void;
@@ -140,6 +144,13 @@ export interface C_Interop {
   };
 
   init_draw_state(session_type_is_x11: boolean): Draw_State;
+
+  make_offscreen_renderer(): Offscreen_Renderer;
+  get_dmabuf_format(offscreen_renderer: Offscreen_Renderer): {
+    fourcc: number;
+    modifier_hi: number;
+    modifier_lo: number;
+  };
 }
 
 export enum Get_FD_Flags {

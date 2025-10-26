@@ -1,4 +1,5 @@
 import { auto_release } from "../auto_release.ts";
+import { Offscreen_Renderer } from "../c_interop.ts";
 import {
   zwp_linux_dmabuf_v1_delegate as d,
   zwp_linux_dmabuf_v1 as w,
@@ -12,6 +13,9 @@ import { Object_ID } from "../wayland_types.ts";
 import { zwp_linux_buffer_params_v1 } from "./zwp_linux_buffer_params_v1.ts";
 import { zwp_linux_dmabuf_feedback_v1 } from "./zwp_linux_dmabuf_feedback_v1.ts";
 
+import c from "../c_interop.ts"
+
+const offscreen_renderer : Offscreen_Renderer = c.make_offscreen_renderer();
 export class zwp_linux_dmabuf_v1 implements d {
   /**
    * @TODO should this be auto_release?
@@ -56,29 +60,33 @@ export class zwp_linux_dmabuf_v1 implements d {
     if (version_number >= 4) {
       return;
     }
-    // Example formats, more can be added as needed
-    /**
-     * @TODO actually check what formats the system supports
-     */
-    const formats = [
-      0x34325241, // 'AR24' - ARGB8888
-      0x34325258, // 'XR24' - XRGB8888
-      0x30323449, // 'I420' - I420
-    ];
-    for (const format of formats) {
-      w.format(s, new_id, format);
-    }
+
+    const dmabuf_format = c.get_dmabuf_format(offscreen_renderer);
+    w.format(s, new_id, dmabuf_format.fourcc);
+    w.modifier(s, version_number, new_id, dmabuf_format.fourcc, dmabuf_format.modifier_hi, dmabuf_format.modifier_lo);
+    // // Example formats, more can be added as needed
+    // /**
+    //  * @TODO actually check what formats the system supports
+    //  */
+    // const formats = [
+    //   0x34325241, // 'AR24' - ARGB8888
+    //   0x34325258, // 'XR24' - XRGB8888
+    //   0x30323449, // 'I420' - I420
+    // ];
+    // for (const format of formats) {
+    //   w.format(s, new_id, format);
+    // }
 
     // Send the modifier event for each format with some example modifiers
-    const example_modifiers = [
-      { hi: 0x0, lo: 0x0 }, // Linear modifier
-      { hi: 0x0, lo: 0x1 }, // Example modifier
-    ];
-    for (const format of formats) {
-      for (const mod of example_modifiers) {
-        w.modifier(s, version_number, new_id, format, mod.hi, mod.lo);
-      }
-    }
+    // const example_modifiers = [
+    //   { hi: 0x0, lo: 0x0 }, // Linear modifier
+    //   { hi: 0x0, lo: 0x1 }, // Example modifier
+    // ];
+    // for (const format of formats) {
+    //   for (const mod of example_modifiers) {
+    //     w.modifier(s, version_number, new_id, format, mod.hi, mod.lo);
+    //   }
+    // }
   };
   static make(): w {
     return new w(new zwp_linux_dmabuf_v1());

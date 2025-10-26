@@ -11,6 +11,9 @@ chafa = dependency('chafa', version: '>=1.8.0')
 # chafa_libdir = chafa.get_pkgconfig_variable('libdir')
 chafa_libdir = chafa.get_variable(pkgconfig: 'libdir')
 
+egl = dependency('egl')
+gl = dependency('gl')
+
 libinterop = shared_library('interop', 
     'src/listen_to_wayland.cpp',
     'src/Send_Message_And_File_Descriptors.cpp',
@@ -32,6 +35,10 @@ libinterop = shared_library('interop',
        'src/close_wayland_socket.cpp',
        'src/get_socket_path_from_name.cpp',
        'src/remove_file_if_it_exists.cpp',
+       'src/get_dmabuf_format.cpp',
+       'src/gpu.cpp',
+       'src/OffScreenRenderer.cpp',
+       'src/make_offscreen_renderer.cpp',
        # {new_file} replaced with `task make-source`
         include_directories: [include,
         
@@ -46,7 +53,9 @@ libinterop = shared_library('interop',
         # https://mesonbuild.com/Builtin-options.html#base-options
         override_options: 'b_lundef=false',
         dependencies: [
-            chafa
+            chafa,
+            egl,
+            gl
             ],
         # Ensure the loader can find libchafa at runtime
         # - Use the system libdir reported by pkg-config
