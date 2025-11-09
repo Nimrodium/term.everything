@@ -68,7 +68,7 @@ func Get{{.Name}}Object(cs {{.Pkg}}ClientState, id {{.Pkg}}ObjectID[{{.Pkg}}{{.N
 
 		requestHandler := genRequestHandler(intf)
 
-		fmt.Fprintf(&out, "func (p *%s) OnRequest(s FileDescriptorClaimClientState, message DecodeState) {\n", intf.Name)
+		fmt.Fprintf(&out, "func (p *%s) OnRequest(s FileDescriptorClaimClientState, message Message) {\n", intf.Name)
 
 		if requestHandler != "" {
 			out.WriteString("    _data_in_offset__ := 0\n")

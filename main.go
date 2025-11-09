@@ -26,7 +26,7 @@ import (
 func main() {
 	args := server.ParseArgs()
 	server.SetVirtualMonitorSize(args.VirtualMonitorSize)
-	listener, err := wayland.NewWaylandSocketListener(&args)
+	listener, err := wayland.MakeSocketListener(&args)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to create socket listener: %v\n", err)
 		os.Exit(1)

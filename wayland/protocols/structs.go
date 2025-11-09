@@ -10,7 +10,11 @@ type OnBindable interface {
 
 type WaylandObject[T OnBindable] interface {
 	Delegate() T
-	OnRequest(s FileDescriptorClaimClientState, message DecodeState)
+	OnRequest(s FileDescriptorClaimClientState, message Message)
+}
+
+type OnRequestable interface {
+	OnRequest(s FileDescriptorClaimClientState, message Message)
 }
 
 // Don't use these functions directly; use the ones in wayland/types.go
@@ -57,6 +61,13 @@ type Sender interface {
 }
 
 type DecodeStateType int
+
+type Message struct {
+	ObjectID AnyObjectID
+	Opcode   uint16
+	Size     uint16
+	Data     []byte
+}
 
 type DecodeState struct {
 	Phase    DecodeStateType

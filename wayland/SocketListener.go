@@ -15,7 +15,7 @@ import (
 type SocketListener struct {
 	WaylandDisplayName string
 	SocketPath         string
-	listener           *net.UnixListener
+	Listener           *net.UnixListener
 
 	mu          sync.Mutex
 	connections map[*net.UnixConn]struct{}
@@ -31,11 +31,11 @@ type HasDisplayName interface {
 	WaylandDisplayName() string
 }
 
-func NewWaylandSocketListener(args HasDisplayName) (*SocketListener, error) {
-	displayName := getWaylandDisplayName(args)
-	socketPath := getSocketPathFromName(displayName)
+func MakeSocketListener(args HasDisplayName) (*SocketListener, error) {
+	displayName := GetWaylandDisplayName(args)
+	socketPath := GetSocketPathFromName(displayName)
 
-	ln, fd, err := listenToWaylandSocket(displayName)
+	ln, fd, err := ListenToWaylandSocket(displayName, socketPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to listen on wayland socket: %w", err)
 	}
@@ -44,7 +44,7 @@ func NewWaylandSocketListener(args HasDisplayName) (*SocketListener, error) {
 	w := &SocketListener{
 		WaylandDisplayName: displayName,
 		SocketPath:         socketPath,
-		listener:           ln,
+		Listener:           ln,
 		connections:        make(map[*net.UnixConn]struct{}),
 		Connections:        make(chan *net.UnixConn),
 		CloseConnections:   make(chan *net.UnixConn),
@@ -70,7 +70,7 @@ func (w *SocketListener) closeConnLoop() {
 				continue
 			}
 			_ = c.Close()
-			w.removeConnection(c)
+			w.RemoveConnection(c)
 		}
 	}
 }
@@ -79,8 +79,8 @@ func (w *SocketListener) MainLoop() error {
 	defer w.Close()
 
 	for {
-		_ = w.listener.SetDeadline(time.Now().Add(2 * time.Second))
-		conn, err := w.listener.AcceptUnix()
+		_ = w.Listener.SetDeadline(time.Now().Add(2 * time.Second))
+		conn, err := w.Listener.AcceptUnix()
 		if ne, ok := err.(net.Error); ok && ne.Timeout() {
 			select {
 			case <-w.closed:
@@ -97,7 +97,7 @@ func (w *SocketListener) MainLoop() error {
 			continue
 		}
 
-		w.addConnection(conn)
+		w.AddConnection(conn)
 
 		// Deliver the connection to consumers.
 		select {
@@ -114,8 +114,8 @@ func (w *SocketListener) Close() error {
 	w.closeOnce.Do(func() {
 		close(w.closed)
 
-		if w.listener != nil {
-			if err := w.listener.Close(); err != nil && firstErr == nil {
+		if w.Listener != nil {
+			if err := w.Listener.Close(); err != nil && firstErr == nil {
 				firstErr = err
 			}
 		}
@@ -134,13 +134,13 @@ func (w *SocketListener) Close() error {
 	return firstErr
 }
 
-func (w *SocketListener) addConnection(c *net.UnixConn) {
+func (w *SocketListener) AddConnection(c *net.UnixConn) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 	w.connections[c] = struct{}{}
 }
 
-func (w *SocketListener) removeConnection(c *net.UnixConn) {
+func (w *SocketListener) RemoveConnection(c *net.UnixConn) {
 	w.mu.Lock()
 	defer w.mu.Unlock()
 	delete(w.connections, c)
@@ -162,7 +162,7 @@ func onExit(callback func()) {
 	}()
 }
 
-func getWaylandDisplayName(args HasDisplayName) string {
+func GetWaylandDisplayName(args HasDisplayName) string {
 	if args.WaylandDisplayName() != "" {
 		return args.WaylandDisplayName()
 	}
@@ -172,7 +172,7 @@ func getWaylandDisplayName(args HasDisplayName) string {
 
 	for i := 2; i < 1000; i++ {
 		name := fmt.Sprintf("wayland-%d", i)
-		path := getSocketPathFromName(name)
+		path := GetSocketPathFromName(name)
 		if _, err := os.Stat(path); err == nil {
 			continue
 		} else if os.IsNotExist(err) {
@@ -186,7 +186,7 @@ func getWaylandDisplayName(args HasDisplayName) string {
 	return ""
 }
 
-func getSocketPathFromName(socketName string) string {
+func GetSocketPathFromName(socketName string) string {
 	runtimeDir := os.Getenv("XDG_RUNTIME_DIR")
 	if runtimeDir == "" {
 		runtimeDir = "/tmp"
@@ -205,31 +205,4 @@ func removeFileIfExists(p string) error {
 		return err
 	}
 	return os.Remove(p)
-}
-
-func listenToWaylandSocket(socketName string) (*net.UnixListener, int, error) {
-	socketPath := getSocketPathFromName(socketName)
-
-	if err := removeFileIfExists(socketPath); err != nil {
-		return nil, -1, fmt.Errorf("remove existing socket: %w", err)
-	}
-
-	addr := &net.UnixAddr{
-		Name: socketPath,
-		Net:  "unix",
-	}
-	ln, err := net.ListenUnix("unix", addr)
-	if err != nil {
-		return nil, -1, fmt.Errorf("listen unix: %w", err)
-	}
-
-	file, err := ln.File()
-	if err != nil {
-		_ = ln.Close()
-		return nil, -1, fmt.Errorf("get listener file: %w", err)
-	}
-	fd := int(file.Fd())
-	_ = file.Close()
-
-	return ln, fd, nil
 }

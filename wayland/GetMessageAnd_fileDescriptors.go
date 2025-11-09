@@ -8,60 +8,54 @@ import (
 	"time"
 )
 
-func GetMessageAndFileDescriptors(conn *net.UnixConn, buf []byte) (n int, fds []int, shouldContinue bool, err error) {
+func GetMessageAndFileDescriptors(conn *net.UnixConn, buf []byte) (n int, fds []int, err error) {
 	const (
-		timeout = 10 * time.Millisecond
-		maxFDs  = 255
-		fdSize  = 4 // bytes per C int in SCM_RIGHTS payload
+		timeout      = 10 * time.Millisecond
+		maxFDsInCmsg = 10  // matches C++: CMSG_SPACE(sizeof(int) * 10)
+		hardFDLimit  = 255 // matches C++ guard in the copy loop
+		intSizeBytes = 4   // sizeof(int) on Linux
 	)
 
-	// Prepare OOB buffer big enough for up to maxFDs.
-	oob := make([]byte, syscall.CmsgSpace(maxFDs*fdSize))
+	oob := make([]byte, syscall.CmsgSpace(maxFDsInCmsg*intSizeBytes))
 
-	// Apply a short read deadline to emulate select timeout.
+	// 10ms "select"-style timeout
 	if err := conn.SetReadDeadline(time.Now().Add(timeout)); err != nil {
-		return 0, nil, false, err
+		return 0, nil, err
 	}
 	defer conn.SetReadDeadline(time.Time{})
 
-	n, oobn, flags, _, rerr := conn.ReadMsgUnix(buf, oob)
+	n, oobn, _, _, rerr := conn.ReadMsgUnix(buf, oob)
 
+	// Timeout -> continue with no data/fds.
 	if ne, ok := rerr.(net.Error); ok && ne.Timeout() {
-		return 0, nil, true, nil
+		return 0, nil, nil
 	}
 	if rerr != nil {
 		if errors.Is(rerr, io.EOF) {
-			return n, nil, false, nil
+			return n, nil, nil
 		}
-		return n, nil, false, rerr
+		// Treat as terminal like the C++ (returns false).
+		return n, nil, rerr
 	}
 	if n == 0 {
-		return 0, nil, false, nil
+		// EOF on stream
+		return 0, nil, nil
 	}
 
-	if flags&syscall.MSG_TRUNC != 0 {
-		return n, nil, false, errors.New("payload truncated (MSG_TRUNC)")
-	}
-	if flags&syscall.MSG_CTRUNC != 0 {
-		return n, nil, false, errors.New("control data truncated (MSG_CTRUNC)")
-	}
-
+	// Parse as many rights as fit; ignore truncation like the C++.
 	if oobn > 0 {
-		cmsgs, perr := syscall.ParseSocketControlMessage(oob[:oobn])
-		if perr != nil {
-			return n, nil, false, perr
-		}
-		for _, cmsg := range cmsgs {
-			rights, rerr := syscall.ParseUnixRights(&cmsg)
-			if rerr == nil && len(rights) > 0 {
-				fds = append(fds, rights...)
-				if len(fds) >= maxFDs {
-					fds = fds[:maxFDs]
-					break
+		if cmsgs, perr := syscall.ParseSocketControlMessage(oob[:oobn]); perr == nil {
+			for _, cmsg := range cmsgs {
+				if rights, rerr := syscall.ParseUnixRights(&cmsg); rerr == nil && len(rights) > 0 {
+					fds = append(fds, rights...)
+					if len(fds) >= hardFDLimit {
+						fds = fds[:hardFDLimit]
+						break
+					}
 				}
 			}
 		}
 	}
 
-	return n, fds, true, nil
+	return n, fds, nil
 }

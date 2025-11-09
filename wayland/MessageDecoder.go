@@ -20,13 +20,6 @@ func initialDecodeState() protocols.DecodeState {
 	}
 }
 
-type Message struct {
-	ObjectID protocols.AnyObjectID
-	Opcode   uint16
-	Size     uint16
-	Data     []byte
-}
-
 type MessageDecoder struct {
 	state protocols.DecodeState
 }
@@ -62,14 +55,10 @@ func (d *MessageDecoder) nextState() {
 	}
 }
 
-func (d *MessageDecoder) Consume(buf []byte, bytesToRead int) []Message {
-	if bytesToRead > len(buf) {
-		bytesToRead = len(buf)
-	}
-	out := make([]Message, 0)
+func (d *MessageDecoder) Consume(buf []byte) []protocols.Message {
 
-	for i := 0; i < bytesToRead; i++ {
-		b := buf[i]
+	out := make([]protocols.Message, 0)
+	for _, b := range buf {
 		switch d.state.Phase {
 		case stateObjectID:
 			d.state.ObjectID |= protocols.AnyObjectID(b) << d.state.I
@@ -89,7 +78,7 @@ func (d *MessageDecoder) Consume(buf []byte, bytesToRead int) []Message {
 			if d.state.I == 16 {
 				if d.state.Size == 8 {
 					// zero-size payload message (header-only)
-					out = append(out, Message{
+					out = append(out, protocols.Message{
 						ObjectID: d.state.ObjectID,
 						Opcode:   d.state.Opcode,
 						Size:     d.state.Size,
@@ -106,7 +95,7 @@ func (d *MessageDecoder) Consume(buf []byte, bytesToRead int) []Message {
 				// copy data to detach from internal buffer
 				payload := make([]byte, want)
 				copy(payload, d.state.Data)
-				out = append(out, Message{
+				out = append(out, protocols.Message{
 					ObjectID: d.state.ObjectID,
 					Opcode:   d.state.Opcode,
 					Size:     d.state.Size,
