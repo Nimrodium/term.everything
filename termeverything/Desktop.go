@@ -25,7 +25,7 @@ type Desktop struct {
 	Buffer []byte
 	RGBA   *image.RGBA
 
-	IconImg *image.RGBA
+	IconImg *image.NRGBA
 
 	CreatedAt                 time.Time
 	WillShowAppRightAtStartup bool
@@ -49,11 +49,35 @@ func MakeDesktop(size wayland.Size, willShowAppRightAtStartup bool) *Desktop {
 		CreatedAt:                 time.Now(),
 		WillShowAppRightAtStartup: willShowAppRightAtStartup,
 	}
-	cd.IconImg = DecodeIconToRGBA(iconPNG)
+	cd.IconImg = RgbaToBgra(DecodeIconToNRGBA(iconPNG))
 	return cd
 }
 
-func DecodeIconToRGBA(data []byte) *image.RGBA {
+func RgbaToBgra(src *image.NRGBA) *image.NRGBA {
+	if src == nil {
+		return nil
+	}
+	b := src.Bounds()
+	dst := image.NewNRGBA(b)
+	for y := b.Min.Y; y < b.Max.Y; y++ {
+		for x := b.Min.X; x < b.Max.X; x++ {
+			off := src.PixOffset(x, y)
+			r := src.Pix[off+0]
+			g := src.Pix[off+1]
+			bb := src.Pix[off+2]
+			a := src.Pix[off+3]
+
+			dstOff := dst.PixOffset(x, y)
+			dst.Pix[dstOff+0] = bb
+			dst.Pix[dstOff+1] = g
+			dst.Pix[dstOff+2] = r
+			dst.Pix[dstOff+3] = a
+		}
+	}
+	return dst
+}
+
+func DecodeIconToNRGBA(data []byte) *image.NRGBA {
 	if len(data) == 0 {
 		return nil
 	}
@@ -61,11 +85,12 @@ func DecodeIconToRGBA(data []byte) *image.RGBA {
 	if err != nil {
 		return nil
 	}
-	if rgba, ok := img.(*image.RGBA); ok {
+	if rgba, ok := img.(*image.NRGBA); ok {
 		return rgba
 	}
 	b := img.Bounds()
-	rgba := image.NewRGBA(b)
+
+	rgba := image.NewNRGBA(b)
 	draw.Draw(rgba, b, img, b.Min, draw.Src)
 	return rgba
 }

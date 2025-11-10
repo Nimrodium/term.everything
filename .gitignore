@@ -26,3 +26,4 @@ resources/out/bunterm
 wayland/protocols/*.xml.go
 wayland/*.helper.go
 __debug_bin*
+term.everything

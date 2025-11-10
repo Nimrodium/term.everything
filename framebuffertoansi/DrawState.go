@@ -81,12 +81,11 @@ func (ds *DrawState) DrawDesktop(texturePixels []byte, width, height uint32, sta
 
 	var sb strings.Builder
 	if haveStatusLine {
-		// Move cursor home, write status, clear to end of line, newline.
 		sb.WriteString(escapecodes.MoveCursorToHome)
-		if haveStatusLine {
-			sb.WriteString(*statusLine)
-		}
+		sb.WriteString(*statusLine)
 		sb.WriteString(escapecodes.ClearLineAfterCursor)
+		sb.WriteString("\n")
+
 	}
 	sb.WriteString(printable)
 
