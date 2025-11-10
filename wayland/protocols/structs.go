@@ -39,6 +39,8 @@ type ClientState interface {
 
 	GetSurfaceFromRole(AnyObjectID) any
 
+	FindDescendantSurface(ObjectID[WlSurface], ObjectID[WlSurface]) bool
+
 	GetGlobalBinds(GlobalID) any
 	// AddGlobalBind(GlobalID, AnyObjectID, Version)
 

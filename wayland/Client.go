@@ -151,9 +151,45 @@ func (c *Client) RemoveObject(id protocols.AnyObjectID) {
 func (c *Client) GetObject(id protocols.AnyObjectID) any {
 	object, ok := c.Objects[id]
 	if !ok {
-		return nil
+		return c.GetGlobalObjectByID(uint32(id))
 	}
 	return object
+}
+
+func (c *Client) GetGlobalObjectByID(globalID uint32) any {
+	switch globalID {
+	case uint32(protocols.GlobalID_WlDisplay):
+		return Global_WlDisplay
+	case uint32(protocols.GlobalID_WlOutput):
+		return Global_WlOutput
+	case uint32(protocols.GlobalID_WlSeat):
+		return Global_WlSeat
+	case uint32(protocols.GlobalID_WlShm):
+		return Global_WlShm
+	case uint32(protocols.GlobalID_WlCompositor):
+		return Global_WlCompositor
+	case uint32(protocols.GlobalID_WlSubcompositor):
+		return Global_WlSubcompositor
+	case uint32(protocols.GlobalID_XdgWmBase):
+		return Global_XdgWmBase
+	case uint32(protocols.GlobalID_WlDataDeviceManager):
+		return Global_WlDataDeviceManager
+	case uint32(protocols.GlobalID_WlKeyboard):
+		return Global_WlKeyboard
+	case uint32(protocols.GlobalID_WlPointer):
+		return Global_WlPointer
+	case uint32(protocols.GlobalID_ZwpXwaylandKeyboardGrabManagerV1):
+		return Global_ZwpXwaylandKeyboardGrabManagerV1
+	case uint32(protocols.GlobalID_XwaylandShellV1):
+		return Global_XwaylandShellV1
+	case uint32(protocols.GlobalID_WlDataDevice):
+		return Global_WlDataDevice
+	case uint32(protocols.GlobalID_WlTouch):
+		return Global_WlTouch
+	case uint32(protocols.GlobalID_ZxdgDecorationManagerV1):
+		return Global_ZxdgDecorationManagerV1
+	}
+	return nil
 }
 
 func MakeClient(conn *net.UnixConn) *Client {
@@ -191,6 +227,7 @@ func (c *Client) MainLoop() {
 					log.Printf("Send error: %v", err)
 					return
 				}
+				print("Send done\n")
 			case <-timeout:
 				goto drained
 				// default:
@@ -230,6 +267,11 @@ func (c *Client) Send(ev protocols.OutgoingEvent) {
  * returns falsy mostly if the client has disconnected
  */
 func (c *Client) SendPendingMessage(ev protocols.OutgoingEvent) error {
+
+	if protocols.DebugRequests {
+		log.Printf("client -> eid=%d opcode=%d len=%d fd=%v",
+			uint32(ev.ObjectID), ev.Opcode, len(ev.Data), ev.FileDescriptor)
+	}
 	// if WaylandDebugTimeOnly() {
 
 	// 	log.Printf("client -> eid=%d opcode=%d len=%d fd=%v",
@@ -247,8 +289,8 @@ func (c *Client) SendPendingMessage(ev protocols.OutgoingEvent) error {
 
 	// Wayland header: object_id (u32), size (u16), opcode (u16)
 	binary.LittleEndian.PutUint32(buf[0:4], uint32(ev.ObjectID))
-	binary.LittleEndian.PutUint16(buf[4:6], uint16(size))
-	binary.LittleEndian.PutUint16(buf[6:8], uint16(ev.Opcode))
+	binary.LittleEndian.PutUint16(buf[4:6], uint16(ev.Opcode))
+	binary.LittleEndian.PutUint16(buf[6:8], uint16(size))
 	copy(buf[8:], ev.Data)
 
 	var fds []int

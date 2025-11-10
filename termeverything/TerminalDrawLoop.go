@@ -109,19 +109,27 @@ func (tw *TerminalDrawLoop) DrawToTerminal(start_of_frame float64, status_line s
 		tw.TimeOfLastTerminalDraw = &start_of_frame
 	}
 
-	var statusLine *string
-	if !tw.HideStatusBar {
-		statusLine = &status_line
-	}
+	// if protocols.DebugRequests {
+	// 	fmt.Println("Debugging!!!")
+	// } else {
+	// 	fmt.Println("Not debugging.")
+	// }
 
-	widthCells, heightCells := tw.DrawState.DrawDesktop(
-		tw.Desktop.Buffer,
-		tw.VirtualMonitorSize.Width,
-		tw.VirtualMonitorSize.Height,
-		statusLine,
-	)
-	tw.SharedRenderedScreenSize.WidthCells = &widthCells
-	tw.SharedRenderedScreenSize.HeightCells = &heightCells
+	if !protocols.DebugRequests {
+		var statusLine *string
+		if !tw.HideStatusBar {
+			statusLine = &status_line
+		}
+
+		widthCells, heightCells := tw.DrawState.DrawDesktop(
+			tw.Desktop.Buffer,
+			tw.VirtualMonitorSize.Width,
+			tw.VirtualMonitorSize.Height,
+			statusLine,
+		)
+		tw.SharedRenderedScreenSize.WidthCells = &widthCells
+		tw.SharedRenderedScreenSize.HeightCells = &heightCells
+	}
 
 }
 

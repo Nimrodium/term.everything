@@ -5,6 +5,8 @@ import (
 	"net"
 	"os"
 	"path/filepath"
+
+	"github.com/mmulet/term.everything/wayland/protocols"
 )
 
 // SocketListener listens for new Wayland client connections on a Unix socket.
@@ -25,6 +27,10 @@ type HasDisplayName interface {
 func MakeSocketListener(args HasDisplayName) (*SocketListener, error) {
 	displayName := GetWaylandDisplayName(args)
 	socketPath := GetSocketPathFromName(displayName)
+
+	if protocols.DebugRequests {
+		fmt.Fprintf(os.Stderr, "Wayland socket path: %s\n", socketPath)
+	}
 
 	ln, fd, err := ListenToWaylandSocket(displayName, socketPath)
 	if err != nil {

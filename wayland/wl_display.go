@@ -10,7 +10,7 @@ func (wd *wl_display) WlDisplay_sync(s protocols.ClientState, _object_id protoco
 
 func (wd *wl_display) WlDisplay_get_registry(s protocols.ClientState, _object_id protocols.ObjectID[protocols.WlDisplay], registry protocols.ObjectID[protocols.WlRegistry]) {
 	registry_object := MakeWlRegistry()
-	s.AddObject(protocols.AnyObjectID(registry), registry_object)
+	AddObject(s, registry, registry_object)
 	for _, global := range protocols.AdvertisedGlobalObjectNames {
 		protocols.WlRegistry_global(s, registry, uint32(global.Id), global.Name, global.Version)
 	}
@@ -25,7 +25,7 @@ func (wd *wl_display) OnBind(
 ) {
 }
 
-func Make() *protocols.WlDisplay {
+func MakeWLDisplay() *protocols.WlDisplay {
 	return &protocols.WlDisplay{
 		Delegate: &wl_display{},
 	}

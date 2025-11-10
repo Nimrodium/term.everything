@@ -77,12 +77,14 @@ func MakeTerminalWindow(
 		GetClients:          make(chan *wayland.Client, 32),
 	}
 
-	os.Stdout.WriteString(escapecodes.EnableAlternativeScreenBuffer)
-	// TODO turn this on, I might be missing the mouse up events without it
-	// os.Stdout.WriteString(escapecodes.EnableNormalMouseTracking)
-	os.Stdout.WriteString(escapecodes.EnableMouseTracking)
+	if !protocols.DebugRequests {
+		os.Stdout.WriteString(escapecodes.EnableAlternativeScreenBuffer)
+		// TODO turn this on, I might be missing the mouse up events without it
+		// os.Stdout.WriteString(escapecodes.EnableNormalMouseTracking)
+		os.Stdout.WriteString(escapecodes.EnableMouseTracking)
 
-	os.Stdout.WriteString(escapecodes.HideCursor)
+		os.Stdout.WriteString(escapecodes.HideCursor)
+	}
 
 	sigCh := make(chan os.Signal, 1)
 	signal.Notify(sigCh,

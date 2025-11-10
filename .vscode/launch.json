@@ -19,8 +19,9 @@
       "program": "${workspaceFolder}",
       "console": "integratedTerminal",
       "args": [
-        "alacritty"
-      ]
+        // "alacritty"
+      ],
+      "buildFlags": ["-tags=debug"],
     }
    
   ]
