@@ -136,69 +136,8 @@ func (tw *TerminalDrawLoop) DrawToTerminal(start_of_frame float64, status_line s
 func (tw *TerminalDrawLoop) MainLoop() {
 	keys_pressed_this_frame := map[Linux_Event_Codes]bool{}
 	for {
-		start_of_frame := float64(time.Now().UnixMilli()) / 1000.0
-		var delta_time float64
-		if tw.TimeOfStartOfLastFrame != nil {
-			delta_time = start_of_frame - *tw.TimeOfStartOfLastFrame
-		} else {
-			delta_time = tw.DesiredFrameTimeSeconds
-		}
-
-		for _, s := range tw.Clients {
-			for {
-				select {
-				case callback_id := <-s.FrameDrawRequests:
-					protocols.WlCallback_done(s, callback_id, uint32(time.Now().UnixMilli()))
-				default:
-					goto DoneCallbacks
-				}
-			}
-		DoneCallbacks:
-		}
-
-		for _, s := range tw.Clients {
-			s.Access.Lock()
-		}
-
-		for _, s := range tw.Clients {
-			pointer_surface_id := wayland.Pointer.PointerSurfaceID[s]
-			if pointer_surface_id == nil {
-				continue
-			}
-			surface := wayland.GetWlSurfaceObject(s, *pointer_surface_id)
-			if surface == nil {
-				continue
-			}
-			surface.Position.X = int32(wayland.Pointer.WindowX)
-			surface.Position.Y = int32(wayland.Pointer.WindowY)
-			surface.Position.Z = 1000
-
-		}
-
-		tw.Desktop.DrawClients(tw.Clients)
-
-		status_line := tw.StatusLine.Draw(delta_time, tw.GetAppTitle(), keys_pressed_this_frame)
-
-		tw.DrawToTerminal(start_of_frame, status_line)
-
-		// const draw_time = Date.now();
-
-		// const time_until_next_frame = Math.max(
-		//   0,
-		//   this.desired_frame_time_seconds - (draw_time - start_of_frame)
-		// );
-
-		tw.TimeOfStartOfLastFrame = &start_of_frame
-
-		tw.StatusLine.PostFrame(delta_time)
-
-		clear(keys_pressed_this_frame)
-
+		tw.DrawClients(keys_pressed_this_frame)
 		timeout := time.After(time.Duration(tw.DesiredFrameTimeSeconds * float64(time.Second)))
-
-		for _, s := range tw.Clients {
-			s.Access.Unlock()
-		}
 
 		for {
 			select {
@@ -228,4 +167,66 @@ func (tw *TerminalDrawLoop) MainLoop() {
 		//  */
 		// time.Sleep(time.Duration(tw.DesiredFrameTimeSeconds * float64(time.Second)))
 	}
+}
+
+func (tw *TerminalDrawLoop) DrawClients(keys_pressed_this_frame map[Linux_Event_Codes]bool) {
+
+	start_of_frame := float64(time.Now().UnixMilli()) / 1000.0
+	var delta_time float64
+	if tw.TimeOfStartOfLastFrame != nil {
+		delta_time = start_of_frame - *tw.TimeOfStartOfLastFrame
+	} else {
+		delta_time = tw.DesiredFrameTimeSeconds
+	}
+
+	for _, s := range tw.Clients {
+		for {
+			select {
+			case callback_id := <-s.FrameDrawRequests:
+				protocols.WlCallback_done(s, callback_id, uint32(time.Now().UnixMilli()))
+			default:
+				goto DoneCallbacks
+			}
+		}
+	DoneCallbacks:
+	}
+
+	for _, s := range tw.Clients {
+		s.Access.Lock()
+		defer s.Access.Unlock()
+	}
+
+	for _, s := range tw.Clients {
+		pointer_surface_id := wayland.Pointer.PointerSurfaceID[s]
+		if pointer_surface_id == nil {
+			continue
+		}
+		surface := wayland.GetWlSurfaceObject(s, *pointer_surface_id)
+		if surface == nil {
+			continue
+		}
+		surface.Position.X = int32(wayland.Pointer.WindowX)
+		surface.Position.Y = int32(wayland.Pointer.WindowY)
+		surface.Position.Z = 1000
+
+	}
+
+	tw.Desktop.DrawClients(tw.Clients)
+
+	status_line := tw.StatusLine.Draw(delta_time, tw.GetAppTitle(), keys_pressed_this_frame)
+
+	tw.DrawToTerminal(start_of_frame, status_line)
+
+	// const draw_time = Date.now();
+
+	// const time_until_next_frame = Math.max(
+	//   0,
+	//   this.desired_frame_time_seconds - (draw_time - start_of_frame)
+	// );
+
+	tw.TimeOfStartOfLastFrame = &start_of_frame
+
+	tw.StatusLine.PostFrame(delta_time)
+
+	clear(keys_pressed_this_frame)
 }
