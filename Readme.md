@@ -4,7 +4,7 @@
 <table>
   <tr>
     <td valign="middle">
-      <img width="128" height="128" alt="icon2" src="./resources/icon.png" />
+      <img width="128" height="128" alt="icon2" src="./termeverything/resources/icon.png" />
     </td>
     <td><h1>Term.Everything❗</h1></td>
     <td><a href="https://github.com/mmulet/term.everything/releases">Download the beta test now!</a></td>
@@ -13,8 +13,8 @@
   <tr>
     <td></td>
     <td>Works on both x11 and Wayland host systems.</td>
-    <td></td>
-    <td></td>
+    <td>Now written in go!</td>
+    <td><a href="https://github.com/mmulet/term.everything/tree/typescript">Typescript version here</a> </td>
   </tr>
 </table>
 
