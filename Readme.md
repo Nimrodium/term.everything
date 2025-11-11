@@ -1,5 +1,7 @@
 
+This is the last commit that used typescript before I converted the entire codebase to Go.
 
+Keeping this around in case people need to reference the typescript version.
 
 <table>
   <tr>
