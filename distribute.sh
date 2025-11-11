@@ -3,10 +3,12 @@
 # This script builds a distributable AppImage
 # of the term.everything application using Podman.
 
-PODMAN_ROOT="./.podman"
-PODMAN_RUNROOT="./.podman-run"
 PODMAN="podman "
 APP_NAME="term.everything❗mmulet.com-dont_forget_to_chmod_+x_this_file"
+if [ -z "${PLATFORM+x}" ]; then
+    PLATFORM="linux/amd64"
+fi
+
 
 get_distro() {
     # Try to detect the distro
@@ -43,13 +45,24 @@ get_distro() {
 }
 
 if ! command -v podman >/dev/null 2>&1; then
-    INSTALL_CMD=$(get_distro)
-    echo "Warning: podman is not installed or not in PATH."
-    echo "To install on your system, try: $INSTALL_CMD podman"
-    echo "Please install podman to proceed, it's literally all you need. Don't even need attention. Just podman. Just get podman. What are you waiting for? Stop reading this and install podman."
-    exit 1
+    if command -v docker >/dev/null 2>&1; then
+        PODMAN="docker "
+    else
+        INSTALL_CMD=$(get_distro)
+        echo "Warning: podman is not installed or not in PATH."
+        echo "To install on your system, try: $INSTALL_CMD podman"
+        echo "Please install podman to proceed, it's literally all you need. Don't even need attention. Just podman. Just get podman. What are you waiting for? Stop reading this and install podman."
+        exit 1
+    fi
+  
 fi
 
-$PODMAN run -it --volume .:/home/mount --rm alpine:latest /bin/sh /home/mount/resources/alpineCompile.sh
 
-echo "Output is ./dist/static/$APP_NAME "
+$PODMAN run \
+    --platform $PLATFORM \
+    -e PLATFORM=$PLATFORM \
+    -it \
+    --volume .:/home/mount \
+    --rm alpine:latest /bin/sh /home/mount/resources/alpineCompile.sh && \
+echo "Output is ./dist/$PLATFORM/static/$APP_NAME"
+
