@@ -25,7 +25,7 @@ import (
 	"unsafe"
 )
 
-type ChafaInfo struct {
+type chafaInfo struct {
 	TermInfo  *C.ChafaTermInfo
 	Mode      C.ChafaCanvasMode
 	PixelMode C.ChafaPixelMode
@@ -41,7 +41,7 @@ type ChafaInfo struct {
 	PixelTypeOverride     C.ChafaPixelType
 }
 
-func (ci *ChafaInfo) ConvertImage(texturePixels []byte, textureWidth, textureHeight, textureStride uint32) string {
+func (ci *chafaInfo) ConvertImage(texturePixels []byte, textureWidth, textureHeight, textureStride uint32) string {
 	if len(texturePixels) == 0 {
 		return ""
 	}
@@ -72,10 +72,10 @@ func (ci *ChafaInfo) ConvertImage(texturePixels []byte, textureWidth, textureHei
 	return C.GoStringN((*C.char)(unsafe.Pointer(ptrStr)), C.int(length))
 }
 
-func MakeChafaInfo(widthCells, heightCells, widthOfACellInPixels, heightOfACellInPixels int, sessionTypeIsX11 bool) *ChafaInfo {
-	termInfo, mode, pixelMode := DetectTerminal()
+func makeChafaInfo(widthCells, heightCells, widthOfACellInPixels, heightOfACellInPixels int, sessionTypeIsX11 bool) *chafaInfo {
+	termInfo, mode, pixelMode := detectTerminal()
 
-	ci := &ChafaInfo{
+	ci := &chafaInfo{
 		TermInfo:              termInfo,
 		Mode:                  mode,
 		PixelMode:             pixelMode,
@@ -114,7 +114,7 @@ func MakeChafaInfo(widthCells, heightCells, widthOfACellInPixels, heightOfACellI
 	return ci
 }
 
-func (ci *ChafaInfo) getPixelType() C.ChafaPixelType {
+func (ci *chafaInfo) getPixelType() C.ChafaPixelType {
 	if ci.PixelTypeOverride != C.CHAFA_PIXEL_MAX {
 		return ci.PixelTypeOverride
 	}
@@ -225,7 +225,7 @@ func getChafaSymbolTags() C.ChafaSymbolTags {
 	}
 }
 
-func (ci *ChafaInfo) Destroy() {
+func (ci *chafaInfo) destroy() {
 	if ci == nil {
 		return
 	}

@@ -2,8 +2,8 @@ package framebuffertoansi
 
 import (
 	"os"
-	"syscall"
-	"unsafe"
+
+	"golang.org/x/sys/unix"
 )
 
 type TermSize struct {
@@ -76,9 +76,13 @@ func MakeTermSize() TermSize {
 
 func GetWinsize(fd uintptr) (WinSize, error) {
 	var ws WinSize
-	_, _, errno := syscall.Syscall(syscall.SYS_IOCTL, fd, uintptr(syscall.TIOCGWINSZ), uintptr(unsafe.Pointer(&ws)))
-	if errno != 0 {
-		return ws, errno
+	w, err := unix.IoctlGetWinsize(int(fd), unix.TIOCGWINSZ)
+	if err != nil {
+		return ws, err
 	}
+	ws.Row = w.Row
+	ws.Col = w.Col
+	ws.Xpixel = w.Xpixel
+	ws.Ypixel = w.Ypixel
 	return ws, nil
 }
