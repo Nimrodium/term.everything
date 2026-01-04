@@ -31,7 +31,7 @@
             pname = "term-everything";
             name = pname;
             version = "0.7.8";
-            # subPackages = [];
+            subPackages = [ "." ];
             src = ./.;
             vendorHash = null;
             nativeBuildInputs = with pkgs; [
@@ -45,6 +45,7 @@
               go generate ./wayland
             '';
             postInstall = ''
+              # rm $out/bin/generate
               mv $out/bin/term.everything $out/bin/${name}
             '';
           };
