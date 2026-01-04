@@ -42,7 +42,7 @@ func ParseArgs() CommandLineArgs {
 	flag.BoolVar(&args.SupportOldApps, "support-old-apps", false, "")
 	flag.StringVar(&args.Xwayland, "xwayland", "", "")
 	flag.StringVar(&args.XwaylandWM, "xwayland-wm", "", "")
-	flag.StringVar(&args.Shell, "shell", "/usr/bin/env sh", "")
+	flag.StringVar(&args.Shell, "shell", "/bin/sh", "")
 	flag.BoolVar(&args.HideStatusBar, "hide-status-bar", false, "")
 	flag.StringVar(&args.VirtualMonitorSize, "virtual-monitor-size", "", "")
 	versionFlag := flag.Bool("version", false, "")

@@ -14,12 +14,38 @@ func MainLoop() {
 	args := ParseArgs()
 	var logger = newLogger(args.DebugLog, nil, args.Verbose)
 	UNUSED(logger)
+	logger.logVerbose(`
+	arguments:
+		WaylandDisplayNameArg=%v
+		SupportOldApps=%v
+		Xwayland=%v
+		XwaylandWM=%v
+		Shell=%v
+		HideStatusBar=%v
+		VirtualMonitorSize=%v
+		DebugLog=%v
+		ReverseScroll=%v
+		MaxFrameRate=%v
+		Positionals=%v
+		Verbose=%v`,
+		args.WaylandDisplayNameArg,
+		args.SupportOldApps,
+		args.Xwayland,
+		args.XwaylandWM,
+		args.Shell,
+		args.HideStatusBar,
+		args.VirtualMonitorSize,
+		args.DebugLog,
+		args.ReverseScroll,
+		args.MaxFrameRate,
+		args.Positionals,
+		args.Verbose)
 	SetVirtualMonitorSize(args.VirtualMonitorSize)
 	listener, err := wayland.MakeSocketListener(&args)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to create socket listener: %v\n", err)
-		os.Exit(1)
-		// logger.logFatal("Failed to create socket listener: %v", err)
+		// fmt.Fprintf(os.Stderr, "Failed to create socket listener: %v\n", err)
+		// os.Exit(1)
+		logger.logFatal("Failed to create socket listener: %v", err)
 	}
 
 	displaySize := wayland.Size{
@@ -60,7 +86,7 @@ func MainLoop() {
 		cmdStr := strings.Join(args.Positionals, " ")
 		shell := args.Shell
 		cmd := exec.Command(shell, "-c", cmdStr)
-
+		logger.logVerbose("command: %v",cmd)
 		baseEnv := os.Environ()
 		filtered := make([]string, 0, len(baseEnv))
 		for _, e := range baseEnv {
@@ -84,8 +110,8 @@ func MainLoop() {
 		// cmd.Stdin = os.Stdin
 
 		if err := cmd.Start(); err != nil {
-			fmt.Fprintf(os.Stderr, "Failed to start command: %v\n", err)
-			// logger.log("Failed to start command: %v", err)
+			// fmt.Fprintf(os.Stderr, "Failed to start command: %v\n", err)
+			logger.log("Failed to start command: %v", err)
 		} else {
 			go func() {
 				_ = cmd.Wait()
