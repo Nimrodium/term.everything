@@ -45,13 +45,14 @@ func (l Logger) checkFatalErr(err error) {
 }
 
 // log used for errors which need to be formatted
-func (e Logger) logFatal(msg string, a ...any) {
-	e.log(msg, a...)
+func (l Logger) logFatal(msg string, a ...any) {
+	l.log(msg, a...)
+	l.close()
 	os.Exit(1)
 }
-func (e Logger) logVerbose(msg string, a ...any) {
-	if e.verbose {
-		e._log(fmt.Sprintf("Verbose: %v\n", fmt.Sprintf(msg, a...)))
+func (l Logger) logVerbose(msg string, a ...any) {
+	if l.verbose {
+		l._log(fmt.Sprintf("Verbose: %v\n", fmt.Sprintf(msg, a...)))
 	}
 }
 
@@ -60,6 +61,13 @@ func (e Logger) logVerbose(msg string, a ...any) {
 func (l Logger) log(msg string, a ...any) {
 	l._log(formatError(msg, a...))
 }
+
+func (l Logger) close() {
+	if l.debugFile != nil {
+		l.debugFile.Close()
+	}
+}
+
 func (l Logger) _log(s string) {
 	if l.useDebugFile {
 		if l.debugFile == nil {
@@ -78,17 +86,11 @@ func (l Logger) _log(s string) {
 	}
 }
 func formatError(msg string, a ...any) string {
-	return fmt.Sprintf("Error: %v\n", fmt.Sprintf(msg, a...))
+	return "Error: " + fmt.Sprintf(msg, a...) + "\n"
 }
 func printStderr(msg string, a ...any) {
 	fmt.Fprintf(os.Stderr, msg, a...)
 }
 func printFormatError(msg string, a ...any) {
 	printStderr("%v", formatError(msg, a...))
-}
-
-func (e Logger) close() {
-	if e.debugFile != nil {
-		e.debugFile.Close()
-	}
 }

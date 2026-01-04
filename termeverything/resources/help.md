@@ -77,7 +77,7 @@ WAYLAND_DISPLAY=<wayland-display-name>
 DISPLAY=<xwayland-display>
 
 `--shell <absolute_path_to_shell>`  
-The shell used to launch the app. Default is `/usr/bin/env sh`.
+The shell used to launch the app. Default is `/bin/sh`.
 
 `--hide-status-bar`  
 Hides the status bar at the top of the terminal. Default is false.
