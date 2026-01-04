@@ -98,6 +98,8 @@ Limit drawing to the terminal to $N frames per second. Accepts float.
 
 `--debug-log`
 Log most debug statements to debug.log instead of printing to console
+`--verbose`
+Enable verbose logging
 
 # Environment Variables
 `TERM_EVERYTHING_PIXEL_MODE`
