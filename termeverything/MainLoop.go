@@ -111,14 +111,31 @@ func MainLoop() {
 		// cmd.Stderr = os.Stderr
 		// cmd.Stdin = os.Stdin
 
-		if err := cmd.Start(); err != nil {
-			// fmt.Fprintf(os.Stderr, "Failed to start command: %v\n", err)
-			logger.logFatal("Failed to start command: %v", err)
-		} else {
-			go func() {
-				_ = cmd.Wait()
-			}()
-		}
+		// if err := cmd.Start(); err != nil {
+		// 	// fmt.Fprintf(os.Stderr, "Failed to start command: %v\n", err)
+		// 	logger.logFatal("Failed to start command: %v", err)
+		// } else {
+		result := make(chan error)
+		go func(ret chan error) {
+			output, err := cmd.CombinedOutput()
+			if err != nil {
+				ret <- fmt.Errorf("command failed to run %v; returncode: %v\nstdout/err: %v", cmd, err, string(output))
+			}
+		}(result)
+		err := <-result
+		logger.checkFatalErr(err)
+		// 	go func(ret chan error) {
+		// 		err := cmd.Wait()
+		// 		if err != nil {
+		// 			output, err := cmd.CombinedOutput()
+		// 			ret = fmt.Errorf("command failed to run %v; returncode: %v\nstdout/err: %v", cmd, err, string(output))
+		// 			// logger.logFatal("command failed to run %v; %v\n%v", cmd, err, output)
+		// 		}
+		// 		ret = nil
+		// 	}(result)
+		// 	err := <-result
+		// 	logger
+		// }
 	}
 
 	<-done
