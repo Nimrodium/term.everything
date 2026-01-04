@@ -40,9 +40,11 @@ func MainLoop() {
 		args.MaxFrameRate,
 		args.Positionals,
 		args.Verbose)
-	SetVirtualMonitorSize(args.VirtualMonitorSize)
+	logger.checkFatalErr(SetVirtualMonitorSize(args.VirtualMonitorSize))
+
 	listener, err := wayland.MakeSocketListener(&args)
 	if err != nil {
+
 		// fmt.Fprintf(os.Stderr, "Failed to create socket listener: %v\n", err)
 		// os.Exit(1)
 		logger.logFatal("Failed to create socket listener: %v", err)
@@ -86,7 +88,7 @@ func MainLoop() {
 		cmdStr := strings.Join(args.Positionals, " ")
 		shell := args.Shell
 		cmd := exec.Command(shell, "-c", cmdStr)
-		logger.logVerbose("command: %v",cmd)
+		logger.logVerbose("command: %v", cmd)
 		baseEnv := os.Environ()
 		filtered := make([]string, 0, len(baseEnv))
 		for _, e := range baseEnv {
@@ -111,7 +113,7 @@ func MainLoop() {
 
 		if err := cmd.Start(); err != nil {
 			// fmt.Fprintf(os.Stderr, "Failed to start command: %v\n", err)
-			logger.log("Failed to start command: %v", err)
+			logger.logFatal("Failed to start command: %v", err)
 		} else {
 			go func() {
 				_ = cmd.Wait()

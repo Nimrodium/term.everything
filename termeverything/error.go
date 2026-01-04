@@ -31,7 +31,20 @@ func newLogger(useDebugFile bool, debugFile *string, verbose bool) Logger {
 	}
 }
 
-// logs error using Logger.log then exits with returncode 1
+// check used for functions that return complete errors
+func (l Logger) checkErr(err error) {
+	if err != nil {
+		l.log("%v", err.Error())
+	}
+}
+
+func (l Logger) checkFatalErr(err error) {
+	if err != nil {
+		l.logFatal("%v", err.Error())
+	}
+}
+
+// log used for errors which need to be formatted
 func (e Logger) logFatal(msg string, a ...any) {
 	e.log(msg, a...)
 	os.Exit(1)
@@ -45,9 +58,9 @@ func (e Logger) logVerbose(msg string, a ...any) {
 // log error on stderr or DEBUG_FILE if useDebugFile automatically prepends Error: and appends \n
 // unsure if to hard crash on error logging failures, or if stderr is even accessible in term.everything?
 func (l Logger) log(msg string, a ...any) {
-	l._log(formatError(msg,a...))
+	l._log(formatError(msg, a...))
 }
-func (l Logger) _log(s string){
+func (l Logger) _log(s string) {
 	if l.useDebugFile {
 		if l.debugFile == nil {
 			// fmt.Println(formatError(""))
@@ -61,7 +74,7 @@ func (l Logger) _log(s string){
 			}
 		}
 	} else {
-		printStderr(s)
+		printStderr("%v", s)
 	}
 }
 func formatError(msg string, a ...any) string {
