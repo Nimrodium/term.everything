@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env sh
 
 # This script builds a distributable AppImage
 # of the term.everything application using Podman.
@@ -15,7 +15,7 @@ get_distro() {
     else
         DISTRO="unknown"
     fi
-    
+
     case $DISTRO in
         ubuntu|debian)
             echo "sudo apt update && sudo apt install -y "
@@ -51,7 +51,7 @@ if ! command -v podman >/dev/null 2>&1; then
         echo "Please install podman to proceed, it's literally all you need. Don't even need attention. Just podman. Just get podman. What are you waiting for? Stop reading this and install podman."
         exit 1
     fi
-  
+
 fi
 
 if [ -z "${PLATFORM+x}" ]; then
@@ -66,4 +66,3 @@ $PODMAN run \
     --volume .:/home/mount \
     --rm alpine:latest /bin/sh /home/mount/resources/alpineCompile.sh && \
 echo "Output is ./dist/$PLATFORM/static/$APP_NAME"
-

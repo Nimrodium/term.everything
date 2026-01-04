@@ -9,13 +9,17 @@ import (
 	"github.com/mmulet/term.everything/wayland"
 )
 
+func UNUSED(x ...any) {}
 func MainLoop() {
 	args := ParseArgs()
+	var logger = newLogger(args.DebugLog, nil, args.Verbose)
+	UNUSED(logger)
 	SetVirtualMonitorSize(args.VirtualMonitorSize)
 	listener, err := wayland.MakeSocketListener(&args)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to create socket listener: %v\n", err)
 		os.Exit(1)
+		// logger.logFatal("Failed to create socket listener: %v", err)
 	}
 
 	displaySize := wayland.Size{
@@ -81,6 +85,7 @@ func MainLoop() {
 
 		if err := cmd.Start(); err != nil {
 			fmt.Fprintf(os.Stderr, "Failed to start command: %v\n", err)
+			// logger.log("Failed to start command: %v", err)
 		} else {
 			go func() {
 				_ = cmd.Wait()
