@@ -21,13 +21,15 @@ func SetVirtualMonitorSize(newVirtualMonitorSize string) error {
 	if len(parts) != 2 {
 		return mkError("found less than 2 dimensions %v", parts)
 	}
-	width, widthErr := strconv.Atoi(parts[0])
-	height, heightErr := strconv.Atoi(parts[1])
+	rawWidth, rawHeight := parts[0], parts[1]
+	width, widthErr := strconv.Atoi(rawWidth)
+	height, heightErr := strconv.Atoi(rawHeight)
+	// using the actual error strings are too verbose so just printing the raw value
 	if widthErr != nil {
-		return mkError("invalid width %v; must be an integer", widthErr)
+		return mkError("invalid width %v; must be an integer", rawWidth)
 	}
 	if heightErr != nil {
-		return mkError("invalid height %v; must be an integer", heightErr)
+		return mkError("invalid height %v; must be an integer", rawHeight)
 	}
 	if width <= 0 {
 		return mkError("invalid width %v; must be greater than zero", width)
