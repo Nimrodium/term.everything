@@ -19,11 +19,7 @@ func SetVirtualMonitorSize(newVirtualMonitorSize string) error {
 	}
 	parts := strings.Split(newVirtualMonitorSize, "x")
 	if len(parts) != 2 {
-		// return errors.New(fmt.Sprintf("%v; found less than 2 dimensions %v", errorMessage, parts))
 		return mkError("found less than 2 dimensions %v", parts)
-		// fmt.Fprintf(os.Stderr, "Invalid virtual monitor size %s, expected <width>x<height>\n", newVirtualMonitorSize)
-		// os.Exit(1)
-		// logger.logFatal("Invalid virtual monitor size %s, expected <width>x<height>", newVirtualMonitorSize)
 	}
 	width, widthErr := strconv.Atoi(parts[0])
 	height, heightErr := strconv.Atoi(parts[1])
