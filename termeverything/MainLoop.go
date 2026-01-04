@@ -9,11 +9,9 @@ import (
 	"github.com/mmulet/term.everything/wayland"
 )
 
-func UNUSED(x ...any) {}
 func MainLoop() {
 	args := ParseArgs()
 	var logger = newLogger(args.DebugLog, nil, args.Verbose)
-	UNUSED(logger)
 	logger.logVerbose(`
 	arguments:
 		WaylandDisplayNameArg=%v
